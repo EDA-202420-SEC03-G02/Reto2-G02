@@ -1,4 +1,7 @@
 import sys
+import App.logic as lg
+
+from DataStructures import array_list
 
 default_limit=1000
 sys.setrecursionlimit(default_limit*10)
@@ -8,6 +11,7 @@ def new_logic():
         Se crea una instancia del controlador
     """
     #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
+    return lg.new_logic_ar()
     pass
 
 def print_menu():
@@ -28,6 +32,7 @@ def load_data(control):
     Carga los datos
     """
     #TODO: Realizar la carga de datos
+    return lg.load_data(control)
     pass
 
 

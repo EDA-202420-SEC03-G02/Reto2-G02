@@ -1,6 +1,4 @@
-rom DataStructures.Utils import error as error
-
-
+from DataStructures import Utils as error
 def new_list():
     """Crea una lista implementada con un Array List vacío. 
 
@@ -16,6 +14,9 @@ def new_list():
 
     # raise error.FunctionNotImplemented("new_list()")
     return newlist
+
+# Crear la lista
+my_list = new_list()
 
 
 def add_first(my_list, element):
@@ -39,26 +40,17 @@ def add_first(my_list, element):
     except Exception as exp:
         error.reraise(exp, 'arraylist->addFirst: ')
 
-
 def add_last(my_list, element):
-    """ Agrega un elemento en la última posición de la lista.
-
-        Al agregar un elemento en la última posición de la lista y se incrementa el tamaño de la lista en uno.
-
-        :param my_list: ArrayList en la que se va a insertar el elemento
-        :type my_list: array_list
-        :param element: Elemento a insertar
-        :type element: any
-
-        :returns: ArrayList con el elemento insertado en la última posición
-        :rtype: array_list
-    """
     try:
+        # Asegúrate de que my_list['elements'] sea una lista
+        if my_list is None or 'elements' not in my_list or my_list['elements'] is None:
+            raise Exception("La lista no está correctamente inicializada.")
+
         my_list['elements'].append(element)
         my_list['size'] += 1
-        # raise error.FunctionNotImplemented("add_last()")
     except Exception as exp:
-        error.reraise(exp, 'arraylist->addLast: ')
+        error.reraise(exp, 'arraylist->addLast')
+
 
 
 def is_empty(my_list):
@@ -652,3 +644,8 @@ def default_sort_criteria(element1, element2):
     if element1 < element2:
         is_sorted = True
     return is_sorted
+
+def add_all(my_list, elements):
+    """ Agrega todos los elementos de 'elements' a 'my_list'. """
+    for element in elements:
+        add_last(my_list, element)
