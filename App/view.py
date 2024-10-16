@@ -82,23 +82,20 @@ def print_req_1(control):
     result = lg.req_1(control, title, original_language)
     
     if isinstance(result, dict):
-        print("Detalles de la película:")
-        print(f"Título: {result['original_title']}")
-        print(f"Idioma original: {result['original_language']}")
-        print(f"Duración: {result['duration']} minutos")
-        
-        # Mostrar la fecha de publicación, verificando si es válida
-        if isinstance(result['release_date'], datetime):
-            print(f"Fecha de publicación: {result['release_date'].strftime('%Y-%m-%d')}")
-        else:
-            print(f"Fecha de publicación: {result['release_date']}")
-        
-        print(f"Presupuesto: {result['budget']}")
-        print(f"Ingresos netos: {result['revenue']}")
-        print(f"Ganancia: {result['profit']}")
-        print(f"Puntaje: {result['rating']}")
+            print("Detalles de la película:")
+            table = [
+                ["Título", result['original_title']],
+                ["Idioma original", result['original_language']],
+                ["Duración", f"{result['duration']} minutos"],
+                ["Fecha de publicación", result['release_date'].strftime('%Y-%m-%d') if isinstance(result['release_date'], datetime) else result['release_date']],
+                ["Presupuesto", result['budget']],
+                ["Ingresos netos", result['revenue']],
+                ["Ganancia", result['profit']],
+                ["Puntaje", result['rating']]
+            ]
+            print(tabulate(table, headers=["Columna", "Valor"], tablefmt="grid"))
     else:
-        print("Ninguna pelicula fue encontrada")
+        print("Ninguna película fue encontrada")
     pass
 
 
@@ -107,6 +104,26 @@ def print_req_2(control):
         Función que imprime la solución del Requerimiento 2 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 2
+    n = int(input("Ingrese el número de películas a listar (N): "))
+    original_language = input("Ingrese el idioma original de la película (ej.: en, fr, zh): ")
+    movies_info=lg.req_2(control,n,original_language)
+    print(f"Total de películas en idioma original: {movies_info['total_movies']}")
+    print("Últimas N películas:")
+    
+    table = []
+    for movie in movies_info['movies']:
+        table.append([
+            movie['release_date'],
+            movie['original_title'],
+            movie['budget'],
+            movie['revenue'],
+            movie['profit'],
+            f"{movie['runtime']} minutos",
+            movie['rating']
+        ])
+
+    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje"]
+    print(tabulate(table, headers=headers, tablefmt="grid"))
     pass
 
 
@@ -115,6 +132,34 @@ def print_req_3(control):
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
+    original_language = str(input("Ingrese el idioma original de la película (ej.: en, fr, zh): "))
+    start_date = input("Ingrese la fecha de inicio (formato: YYYY-MM-DD): ")
+    end_date = input("Ingrese la fecha de fin (formato: YYYY-MM-DD): ")
+
+    # Llamar a req_3 con los parámetros proporcionados
+    movies_info = lg.req_3(control, original_language, start_date, end_date)
+
+    # Imprimir el total de películas y el tiempo promedio
+    print(f"Total de películas en idioma original: {movies_info['total_movies']}")
+    print(f"Tiempo promedio de duración: {movies_info['average_duration']:.2f} minutos\n")
+    print("Últimas películas:")
+
+    # Preparar la tabla para imprimir
+    table = []
+    for movie in movies_info['movies']:
+        table.append([
+            movie['release_date'],
+            movie['original_title'],
+            movie['budget'],
+            movie['revenue'],
+            movie['profit'],
+            f"{movie['runtime']} minutos",
+            movie['rating']
+        ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje"]
+    print(tabulate(table, headers=headers, tablefmt="grid"))   
     pass
 
 

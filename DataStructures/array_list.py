@@ -640,12 +640,10 @@ def default_sort_criteria(element1, element2):
         :returns: ``True`` si el primer elemento es menor al segundo elemento, ``False`` en caso contrario
         :rtype: bool
     """
-    is_sorted = False
-    if element1 < element2:
-        is_sorted = True
-    return is_sorted
+    return element1> element2
 
 def add_all(my_list, elements):
     """ Agrega todos los elementos de 'elements' a 'my_list'. """
     for element in elements:
         add_last(my_list, element)
+        

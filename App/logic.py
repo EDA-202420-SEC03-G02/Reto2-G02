@@ -108,75 +108,58 @@ def req_1(catalog, title, original_language):
 
 
 
-
+def date_sort_criteria(element1, element2):
+    return element1['release_date'] > element2['release_date']
 def req_2(catalog, n, original_language):
-    """
-    Retorna el resultado del requerimiento 2
-
-    Lista las últimas N películas publicadas en un idioma específico.
+    """Lista las últimas N películas publicadas en un idioma original específico.
     
-    :param catalog: Estructura de datos que contiene las películas
+    :param catalog: Catálogo que contiene la lista de películas
+    :type catalog: dict
     :param n: Número de películas a listar
-    :param original_language: Idioma original de las películas
-    :return: Lista de las últimas N películas en orden cronológico
+    :type n: int
+    :param original_language: Idioma original de la película
+    :type original_language: str
+    :return: Detalles de las últimas N películas encontradas
+    :rtype: dict
     """
-    # Paso 1: Filtrar películas por el idioma original
-    filtar_peliculas = []
+
+    movies_list = lp.value_set(catalog["movies"])
+
+    # Filtrar películas por idioma original
+    filtered_movies = []
+
+    for movie in movies_list:
+        if movie['original_language'] == original_language:
+            filtered_movies.append(movie)
+
+    # Crear una lista para usar con el algoritmo de ordenamiento
+    my_list = array.new_list()
+    for movie in filtered_movies:
+        array.add_last(my_list, movie)#se añaden las películas filtradas a esta lista usando
+
+    # Ordenar películas por fecha de publicación usando merge_sort
+    sorted_movies = array.merge_sort(my_list, date_sort_criteria)
+
     
-    for pos in range(len(catalog['title'])):
-        if catalog['original_language'][pos] == original_language:
-            movie = {
-                'title': array.get_element(catalog['title'], pos),
-                'original_language': array.get_element(catalog['original_language'], pos),
-                'release_date': array.get_element(catalog['release_date'], pos),
-                'budget': float(array.get_element(catalog['budget'], pos)) if array.get_element(catalog['budget'], pos) != 'Indefinido' else 0.0,
-                'revenue': float(array.get_element(catalog['revenue'], pos)) if array.get_element(catalog['revenue'], pos) != 'Indefinido' else 0.0,
-                'runtime': array.get_element(catalog['runtime'], pos),
-                'vote_average': array.get_element(catalog['vote_average'], pos)
-            }
-            movie['profit'] = movie['revenue'] - movie['budget']  # Calcular la ganancia
-            filtar_peliculas.append(movie)
-    
-    # Total de películas encontradas en ese idioma
-    total_movies = len(filtar_peliculas)
-
-    if total_movies == 0:
-        return f"No se encontraron películas en el idioma {original_language}."
-
-    # Paso 2: Ordenar las películas por fecha de publicación (de más reciente a más antigua)
-    sorted_movies = array.merge_sort(filtar_peliculas, cmp_by_date)
-
-    # Paso 3: Tomar las primeras N películas
-    latest_n_movies = sorted_movies[:n]
-
-    # Preparar la respuesta con los datos requeridos
-    resp = {
-        'total_movies_in_language': total_movies,
-        'latest_n_movies': []
+    response = {
+        "total_movies": array.size(my_list),
+        "movies": []
     }
 
-    for movie in latest_n_movies:
-        movie_info = {
-            'release_date': movie['release_date'],
-            'title': movie['title'],
-            'budget': movie['budget'],
-            'revenue': movie['revenue'],
-            'profit': movie['profit'],
-            'runtime': movie['runtime'],
-            'vote_average': movie['vote_average']
-        }
-        resp['latest_n_movies'].append(movie_info)
+    # Limitar a las últimas N películas
+    for movie in sorted_movies['elements'][:n]:  # Acceder a los elementos de la lista ordenada
 
-    return resp
+        response["movies"].append({
+            "release_date": movie["release_date"],
+            "original_title": movie["title"],
+            "budget": movie["budget"],
+            "revenue": movie["revenue"],
+            "profit": movie["earnings"],
+            "runtime": movie["runtime"],
+            "rating": movie["vote_average"]
+        })
 
-def esta_en_rango(movie_date, start_date, end_date):
-    """
-    Verifica si una fecha de la película está dentro del rango de fechas dado.
-    """
-    movie_date = datetime.strptime(movie_date, '%Y-%m-%d')
-    start_date = datetime.strptime(start_date, '%Y-%m-%d')
-    end_date = datetime.strptime(end_date, '%Y-%m-%d')
-    return start_date <= movie_date <= end_date
+    return response
 
 def req_3(catalog, original_language, start_date, end_date):
     """
@@ -189,64 +172,51 @@ def req_3(catalog, original_language, start_date, end_date):
     :param end_date: Fecha final del periodo a consultar (formato '%Y-%m-%d')
     :return: Información sobre las películas que cumplen con los criterios.
     """
-    # Paso 1: Filtrar películas por idioma y por rango de fechas
-    filtrar_peliculas = []
-    
-    for pos in range(len(catalog['title'])):
-        movie_language = array.get_element(catalog['original_language'], pos)
-        movie_date = array.get_element(catalog['release_date'], pos)
-        
-        if (movie_language == original_language and 
-            esta_en_rango(movie_date, start_date, end_date)):
-            
-            movie = {
-                'title': array.get_element(catalog['title'], pos),
-                'release_date': movie_date,
-                'budget': float(array.get_element(catalog['budget'], pos)) if array.get_element(catalog['budget'], pos) != 'Indefinido' else 0.0,
-                'revenue': float(array.get_element(catalog['revenue'], pos)) if array.get_element(catalog['revenue'], pos) != 'Indefinido' else 0.0,
-                'runtime': array.get_element(catalog['runtime'], pos),
-                'vote_average': array.get_element(catalog['vote_average'], pos),
-                'status': array.get_element(catalog['status'], pos)
-            }
-            movie['profit'] = movie['revenue'] - movie['budget']  # Calcular ganancia
-            filtrar_peliculas.append(movie)
-    
-    # Si no se encuentran películas
-    if array.size(filtrar_peliculas) == 0:
-        return f"No se encontraron películas en el idioma {original_language} entre {start_date} y {end_date}."
-    
-    # Paso 2: Calcular el tiempo promedio de duración usando get_element
-    total_runtime = 0
-    for pos, movie in enumerate(filtrar_peliculas):
-        runtime = array.get_element(catalog['runtime'], pos)  # Obtener el tiempo de duración usando get_element
-        total_runtime += runtime
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
-    promedio_runtime = total_runtime / len(filtrar_peliculas)  # Calcular el promedio
+    # Filtrar películas por idioma original y rango de fechas
+    filtered_movies = []
+    
+    for movie in catalog["movies"]:
+        if movie['original_language'] == original_language:
+            release_date = datetime.strptime(movie['release_date'], "%Y-%m-%d")
+            if start_date <= release_date <= end_date:
+                filtered_movies.append(movie)
 
-    # Paso 3: Ordenar las películas por fecha de publicación (de más antigua a más reciente)
-    filtrar_peliculas = array.merge_sort(filtrar_peliculas, lambda m1, m2: datetime.strptime(m1['release_date'], '%Y-%m-%d') < datetime.strptime(m2['release_date'], '%Y-%m-%d'))
+    # Crear una lista para usar con el algoritmo de ordenamiento
+    my_list = array.new_list()
+    for movie in filtered_movies:
+        array.add_last(my_list, movie)
 
-    # respuesta
-    resp = {
-        'total_movies': len(filtrar_peliculas),
-        'average_runtime': promedio_runtime,
-        'movies': []
+    # Ordenar películas por fecha de publicación usando merge_sort
+    sorted_movies = array.merge_sort(my_list, date_sort_criteria)
+
+    # Calcular el total de películas y el tiempo promedio de duración
+    total_movies = array.size(my_list)
+    average_duration = sum(movie['runtime'] for movie in sorted_movies['elements']) / total_movies if total_movies > 0 else 0
+
+    # Preparar la respuesta
+    response = {
+        "total_movies": total_movies,
+        "average_duration": average_duration,
+        "movies": []
     }
 
-    for movie in filtrar_peliculas:
-        movie_info = {
-            'release_date': movie['release_date'],
-            'title': movie['title'],
-            'budget': movie['budget'],
-            'revenue': movie['revenue'],
-            'profit': movie['profit'],
-            'runtime': movie['runtime'],
-            'vote_average': movie['vote_average'],
-            'status': movie['status']
-        }
-        resp['movies'].append(movie_info)
+    # Limitar a las primeras 10 películas si hay más de 20
+    for movie in sorted_movies['elements'][:10]:
+        response["movies"].append({
+            "release_date": movie["release_date"],
+            "original_title": movie["title"],
+            "budget": movie["budget"],
+            "revenue": movie["revenue"],
+            "profit": movie["earnings"],
+            "runtime": movie["runtime"],
+            "rating": movie["vote_average"],
+            "status": movie.get("status", "Undefined")
+        })
 
-    return resp
+    return response
 
 
 def req_4(catalog, status, start_date, end_date):
