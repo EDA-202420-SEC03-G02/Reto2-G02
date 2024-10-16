@@ -79,7 +79,7 @@ def print_req_1(control):
     title = input("Ingrese el nombre de la película: ")
     original_language = input("Ingrese el idioma original de la película: ")
 
-    result = lg.req_1(control, title, original_language)
+    result,time = lg.req_1(control, title, original_language)
     
     if isinstance(result, dict):
             print("Detalles de la película:")
@@ -94,8 +94,10 @@ def print_req_1(control):
                 ["Puntaje", result['rating']]
             ]
             print(tabulate(table, headers=["Columna", "Valor"], tablefmt="grid"))
+            print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")
     else:
         print("Ninguna película fue encontrada")
+        print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")
     pass
 
 
@@ -106,7 +108,7 @@ def print_req_2(control):
     # TODO: Imprimir el resultado del requerimiento 2
     n = int(input("Ingrese el número de películas a listar (N): "))
     original_language = input("Ingrese el idioma original de la película (ej.: en, fr, zh): ")
-    movies_info=lg.req_2(control,n,original_language)
+    movies_info,time=lg.req_2(control,n,original_language)
     print(f"Total de películas en idioma original: {movies_info['total_movies']}")
     print("Últimas N películas:")
     
@@ -124,6 +126,7 @@ def print_req_2(control):
 
     headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje"]
     print(tabulate(table, headers=headers, tablefmt="grid"))
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")
     pass
 
 
@@ -137,7 +140,7 @@ def print_req_3(control):
     end_date = input("Ingrese la fecha de fin (formato: YYYY-MM-DD): ")
 
     # Llamar a req_3 con los parámetros proporcionados
-    movies_info = lg.req_3(control, original_language, start_date, end_date)
+    movies_info,time = lg.req_3(control, original_language, start_date, end_date)
 
     # Imprimir el total de películas y el tiempo promedio
     print(f"Total de películas en idioma original: {movies_info['total_movies']}")
@@ -154,12 +157,14 @@ def print_req_3(control):
             movie['revenue'],
             movie['profit'],
             f"{movie['runtime']} minutos",
-            movie['rating']
+            movie['rating'],
+            movie["status"]
         ])
 
     # Definir los encabezados de la tabla
-    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje"]
-    print(tabulate(table, headers=headers, tablefmt="grid"))   
+    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje","Status"]
+    print(tabulate(table, headers=headers, tablefmt="grid"))
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")   
     pass
 
 
@@ -168,6 +173,37 @@ def print_req_4(control):
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
+    
+    production_status = str(input("Ingrese el estado de producción de la película (ej.: Released, Rumored): "))
+    start_date = input("Ingrese la fecha de inicio (formato: YYYY-MM-DD): ")
+    end_date = input("Ingrese la fecha de fin (formato: YYYY-MM-DD): ")
+
+   
+    movies_info,time = lg.req_4(control, production_status, start_date, end_date)
+
+    # Imprimir el total de películas y el tiempo promedio
+    print(f"Total de películas con estado '{production_status}': {movies_info['total_movies']}")
+    print(f"Tiempo promedio de duración: {movies_info['average_duration']:.2f} minutos\n")
+    print("Últimas películas:")
+
+    # Preparar la tabla para imprimir
+    table = []
+    for movie in movies_info['movies']:
+        table.append([
+            movie['release_date'],
+            movie['original_title'],
+            movie['budget'],
+            movie['revenue'],
+            movie['profit'],
+            f"{movie['runtime']} minutos",
+            movie['rating'],
+            movie['original_language']
+        ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje", "Idioma original"]
+    print(tabulate(table, headers=headers, tablefmt="grid"))  
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")  
     pass
 
 
@@ -176,6 +212,37 @@ def print_req_5(control):
         Función que imprime la solución del Requerimiento 5 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 5
+    budget_range = input("Ingrese el rango de presupuesto (ej.: 0-999, 1000-1999): ")
+    start_date = input("Ingrese la fecha de inicio (formato: YYYY-MM-DD): ")
+    end_date = input("Ingrese la fecha de fin (formato: YYYY-MM-DD): ")
+
+    # Obtener la información de las películas que cumplen con el criterio
+    movies_info,time = lg.req_5(control, budget_range, start_date, end_date)
+
+    # Imprimir el total de películas y el presupuesto promedio
+    print(f"Total de películas en el rango de presupuesto '{budget_range}': {movies_info['total_movies']}")
+    print(f"Presupuesto promedio: {movies_info['average_budget']:.2f} dólares")
+    print(f"Tiempo promedio de duración: {movies_info['average_duration']:.2f} minutos\n")
+    print("Últimas películas:")
+
+    # Preparar la tabla para imprimir
+    table = []
+    for movie in movies_info['movies']:
+        table.append([
+            movie['release_date'],
+            movie['original_title'],
+            movie['budget'],
+            movie['revenue'],
+            movie['profit'],
+            f"{movie['runtime']} minutos",
+            movie['rating'],
+            movie['original_language']
+        ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Fecha de publicación", "Título original", "Presupuesto", "Ingresos", "Ganancia", "Duración", "Puntaje", "Idioma original"]
+    print(tabulate(table, headers=headers, tablefmt="grid"))    
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")
     pass
 
 
@@ -184,6 +251,38 @@ def print_req_6(control):
         Función que imprime la solución del Requerimiento 6 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 6
+     
+    language = input("Ingrese el idioma de las películas (ej.: 'en' para inglés): ")
+    start_year = input("Ingrese el año de inicio (formato: YYYY): ")
+    end_year = input("Ingrese el año de fin (formato: YYYY): ")
+
+    # Obtener la información de las películas que cumplen con el criterio
+    movies_info,time = lg.req_6(control, language, start_year, end_year)
+
+    # Imprimir el total de películas y el presupuesto promedio
+    print(f"Total de películas en el idioma '{language}' entre {start_year} y {end_year}: {len(movies_info)}")
+    
+    # Preparar la tabla para imprimir
+    table = []
+    for year_info in movies_info:
+        table.append([
+            year_info['year'],
+            year_info['total_movies'],
+            year_info['average_rating'],
+            year_info['average_runtime'],
+            year_info['total_revenue'],
+            year_info['best_movie']['title'] if year_info['best_movie'] else "Undefined",
+            year_info['best_movie']['rating'] if year_info['best_movie'] else "Undefined",
+            year_info['worst_movie']['title'] if year_info['worst_movie'] else "Undefined",
+            year_info['worst_movie']['rating'] if year_info['worst_movie'] else "Undefined"
+        ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Año", "Total de Películas", "Rating Promedio", "Duración Promedio", "Ingresos Totales", 
+               "Mejor Película", "Rating Mejor Película", "Peor Película", "Rating Peor Película"]
+    
+    print(tabulate(table, headers=headers, tablefmt="grid"))
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")
     pass
 
 
@@ -192,6 +291,37 @@ def print_req_7(control):
         Función que imprime la solución del Requerimiento 7 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 7
+    production_company = input("Ingrese el nombre de la compañía productora: ")
+    start_year = input("Ingrese el año de inicio (formato: YYYY): ")
+    end_year = input("Ingrese el año de fin (formato: YYYY): ")
+
+    # Obtener la información de las películas que cumplen con el criterio
+    movies_info,time = lg.req_7(control, production_company, start_year, end_year)
+
+    # Imprimir el total de películas por año
+    print(f"Estadísticas de películas publicadas por '{production_company}' entre {start_year} y {end_year}:\n")
+
+    # Preparar la tabla para imprimir
+    table = []
+    for year_info in movies_info:
+        table.append([
+            year_info['year'],
+            year_info['total_movies'],
+            year_info['average_rating'],
+            year_info['average_runtime'],
+            year_info['total_revenue'],
+            year_info['best_movie']['title'] if year_info['best_movie'] else "Undefined",
+            year_info['best_movie']['rating'] if year_info['best_movie'] else "Undefined",
+            year_info['worst_movie']['title'] if year_info['worst_movie'] else "Undefined",
+            year_info['worst_movie']['rating'] if year_info['worst_movie'] else "Undefined"
+        ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Año", "Total de Películas", "Rating Promedio", "Duración Promedio", "Ingresos Totales", 
+               "Mejor Película", "Rating Mejor Película", "Peor Película", "Rating Peor Película"]
+    
+    print(tabulate(table, headers=headers, tablefmt="grid"))  
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]")  
     pass
 
 
@@ -200,6 +330,35 @@ def print_req_8(control):
         Función que imprime la solución del Requerimiento 8 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 8
+    start_year = input("Ingrese el año (formato: YYYY): ")
+    genre = input("Ingrese el género: ")
+
+    # Obtener la información de las películas que cumplen con el criterio
+    movies_info, time = lg.req_8(control, start_year, genre)
+
+    # Imprimir las estadísticas de películas por género y año
+    print(f"Estadísticas de películas del género '{genre}' publicadas en el año {start_year}:\n")
+
+    # Preparar la tabla para imprimir
+    table = []
+    table.append([
+        movies_info['year'],
+        movies_info['total_movies'],
+        movies_info['average_rating'],
+        movies_info['average_runtime'],
+        movies_info['total_revenue'],
+        movies_info['best_movie']['title'] if movies_info['best_movie'] else "Undefined",
+        movies_info['best_movie']['rating'] if movies_info['best_movie'] else "Undefined",
+        movies_info['worst_movie']['title'] if movies_info['worst_movie'] else "Undefined",
+        movies_info['worst_movie']['rating'] if movies_info['worst_movie'] else "Undefined"
+    ])
+
+    # Definir los encabezados de la tabla
+    headers = ["Año", "Total de Películas", "Rating Promedio", "Duración Promedio", "Ingresos Totales", 
+               "Mejor Película", "Rating Mejor Película", "Peor Película", "Rating Peor Película"]
+    
+    print(tabulate(table, headers=headers, tablefmt="grid"))  
+    print("Tiempo de ejecución:", f"{time:.3f}", "[ms]") 
     pass
 
 
