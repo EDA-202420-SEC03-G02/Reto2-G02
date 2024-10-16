@@ -2,181 +2,111 @@ import time
 import json  
 import csv
 from DataStructures import array_list as array
+from DataStructures import map_linear_probing as lp
 from datetime import datetime
 
-csv.field_size_limit(2147483647)
-data_dir = "C:/Users/danie/Downloads/reto 2/Reto2-G02/Data/movies-large.csv"
-#cambien las rutas si necesitan
 
-
-
-def create_genre(genre_id, genre_name):
-    return {"id": genre_id, "name": genre_name}
-
-def create_production_company(company_id, company_name):
-    return {"id": company_id, "name": company_name}
-
-def process_genres():
-    genres_list = []
-    with open(data_dir, encoding='utf-8') as file:
-        movies = csv.DictReader(file)
-        for movie in movies:
-            genres_data = json.loads(movie["genres"])
-            for genre in genres_data:
-                genre_obj = create_genre(genre["id"], genre["name"])
-                genres_list.append(genre_obj)
-    return genres_list
-
-def process_production_companies():
-    production_companies_list = []
-    with open(data_dir, encoding='utf-8') as file:
-        movies = csv.DictReader(file)
-        for movie in movies:
-            companies_data = json.loads(movie["production_companies"])
-            for company in companies_data:
-                company_obj = create_production_company(company["id"], company["name"])
-                production_companies_list.append(company_obj)
-    return production_companies_list
-  
-
-def new_logic_ar():
+def new_logic():
     """
-    Crea el catalogo para almacenar las estructuras de datos
+    Crea el catálogo para almacenar las estructuras de datos
     """
-    #TODO: Llama a las funciónes de creación de las estructuras de datos
-    catalog_array = {'id': None,
-            'title': None,
-            'original_language': None,
-            'release_date': None,
-            'revenue': None,
-            'runtime': None,
-            'status': None,
-            'vote_average': None,
-            'vote_count': None,
-            'budget': None,
-            'genres': None,
-            'production_companies': None,
-            }
-
-    catalog_array['id'] = array.new_list()
-    catalog_array['title'] = array.new_list() 
-    catalog_array['original_language'] = array.new_list()
-    catalog_array['release_date'] = array.new_list()
-    catalog_array['revenue'] = array.new_list() 
-    catalog_array['runtime'] = array.new_list()
-    catalog_array['status'] = array.new_list()
-    catalog_array['vote_average'] = array.new_list()
-    catalog_array['vote_count'] = array.new_list() 
-    catalog_array['budget'] = array.new_list()
-    genres_data = process_genres()
-    production_companies_data = process_production_companies()
-    array.add_all(catalog_array['genres'], genres_data)
-    array.add_all(catalog_array['production_companies'], production_companies_data)   
-    return catalog_array
-
-pass
+   
+    catalog = {
+        "movies": lp.new_map(90000,0.5)
+    }
+    return catalog
 
 
-# Funciones para la carga de datos
+
 
 def load_data(catalog, filename):
     """
-    Carga los datos del reto
+    Carga los datos del reto desde un archivo CSV y reporta el total de películas y 
+    detalles de las cinco primeras y cinco últimas películas cargadas.
     """
-    # TODO: Realizar la carga de datos
-    with open(filename, encoding='utf-8') as file:
-        movies = csv.DictReader(file)
-        for movie in movies:
-            array.add_last(catalog_array['id'], movie['id'])
-            array.add_last(catalog_array['title'], movie['title'])
-            array.add_last(catalog_array['original_language'], movie['original_language'])
-            array.add_last(catalog_array['release_date'], movie['release_date'])
-            array.add_last(catalog_array['revenue'], movie['revenue'] if movie['revenue'] else "Indefinido")
-            array.add_last(catalog_array['runtime'], movie['runtime'] if movie['runtime'] else 0)
-            array.add_last(catalog_array['status'], movie['status'])
-            array.add_last(catalog_array['vote_average'], movie['vote_average'])
-            array.add_last(catalog_array['vote_count'], movie['vote_count'])
-            array.add_last(catalog_array['budget'], movie['budget'] if movie['budget'] else "Indefinido")
-   
+    filename="C:\\Users\\dfeli\\Downloads\\Universidad Segundo Semestre\\Estructura De Datos Y Algoritmos\\Retos\\Reto 2\\Reto2-G02\\Data\\Challenge-2\\movies-large.csv"
+    input_file = csv.DictReader(open(filename, encoding="utf-8"))
+    movies_list = []
+    
+    for movie in input_file:
+        # Manejo de los campos numéricos y JSON
+        movie["budget"] = int(movie["budget"]) if movie["budget"] != "0" else "Undefined"
+        movie["revenue"] = int(movie["revenue"]) if movie["revenue"] != "0" else "Undefined"
+        movie["earnings"] = int(movie["revenue"]) - int(movie["budget"]) if movie["revenue"] != "Undefined" and movie["budget"] != "Undefined" else "Undefined"
+        
+        movie["genres"] = json.loads(movie["genres"]) if movie["genres"] else []
+        movie["production_companies"] = json.loads(movie["production_companies"]) if movie["production_companies"] else []
+        
+        movie["vote_average"] = float(movie["vote_average"]) if movie["vote_average"] else "Undefined"
+        movie["vote_count"] = int(movie["vote_count"]) if movie["vote_count"] else "Undefined"
+        
+        # Si no hay valores, asignamos "Unknown"
+        movie["id"] = movie["id"] if movie["id"] else "Unknown"
+        movie["title"] = movie["title"] if movie["title"] else "Unknown"
+        movie["original_language"] = movie["original_language"] if movie["original_language"] else "Unknown"
+        movie["release_date"] = datetime.strptime(movie["release_date"], "%Y-%m-%d").date() if movie["release_date"] else "Unknown"
+        movie["status"] = movie["status"] if movie["status"] else "Unknown"
+        movie["runtime"] = int(float(movie["runtime"])) if movie["runtime"] else "Unknown"
+        
+        # Añadir la película al catálogo
+        movie_id = movie["id"]
+        movies_list.append(movie)
+        lp.put(catalog["movies"], movie_id, movie)
 
-
-pass
+    # Reportar el total de películas cargadas
+    total_movies = lp.size(catalog["movies"])
+    
+    # Primeras y últimas cinco películas
+    first_five = movies_list[:5]
+    last_five = movies_list[-5:]
+    
+    return total_movies, first_five, last_five
 
 # Funciones de consulta sobre el catálogo
 
-def get_data(catalog, id):
+def get_data(catalog, movie_id):
     """
-    Retorna un dato por su ID.
+    Retorna una película por su ID.
     """
-    #TODO: Consulta en las Llamar la función del modelo para obtener un dato
-    for i in range(array.size(catalog_array['id'])):
-        if array.get_element(catalog_array['id'], i) == id:
-            pelicula = {
-                'runtime': array.get_element(catalog_array['runtime'], i),
-                'release_date': array.get_element(catalog_array['release_date'], i),
-                'title': array.get_element(catalog_array['title'], i),
-                'budget': array.get_element(catalog_array['budget'], i),
-                'revenue': array.get_element(catalog_array['revenue'], i),
-                'vote_average': array.get_element(catalog_array['vote_average'], i),
-                'vote_count': array.get_element(catalog_array['vote_count'], i),
-                'genres': array.get_element(catalog_array['genres'], i),
-                'production_companies': array.get_element(catalog_array['production_companies'], i),
-                'original_language': array.get_element(catalog_array['original_language'], i),
-            }
-            return pelicula
-    return None  
+    return lp.get(catalog["movies"], movie_id)
 pass
 
-def cmp_movie(movie1, movie2):
-    """
-    Función de comparación que verifica si dos películas son iguales basadas
-    en el nombre y el idioma original.
-    
-    :param movie1: Una tupla con (nombre, idioma)
-    :param movie2: Otra tupla con (nombre, idioma)
-    :return: 0 si son iguales, 1 si movie1 > movie2, -1 si movie1 < movie2
-    """
-    if movie1[0] == movie2[0] and movie1[1] == movie2[1]:
-        return 0
-    return -1
         
-def req_1(catalog,movie_name, movie_language):
-    """
-    Retorna el resultado del requerimiento 1
-    """
-    """
-    Encuentra una película por su nombre y su idioma original de publicación.
+def req_1(catalog, title, original_language):
+    """Busca una película por su nombre y idioma original.
     
-    :param catalog: Estructura del catálogo
-    :param movie_name: Nombre de la película
-    :param movie_language: Idioma original de la película
-    :return: Diccionario con la información de la película, o None si no se encuentra
+    :param catalog: Catálogo que contiene la lista de películas
+    :type catalog: dict
+    :param title: Nombre de la película a buscar
+    :type title: str
+    :param original_language: Idioma original de la película
+    :type original_language: str
+    :return: Detalles de la película encontrada o un mensaje de no encontrado
+    :rtype: dict
     """
-    encontrar_pelicula = (movie_name, movie_language)
+    # Obtener la lista de películas
+    movies_list = lp.value_set(catalog["movies"])
     
-    for pos in range(len(catalog['title'])):
-        current_movie = (catalog['title'][pos], catalog['original_language'][pos])
-        
-        if cmp_movie(encontrar_pelicula, current_movie) == 0:
-            return {
-                'title': get_element(catalog['title'], pos),
-                'original_language': get_element(catalog['original_language'], pos),
-                'runtime': get_element(catalog['runtime'], pos),
-                'release_date': get_element(catalog['release_date'], pos),
-                'budget': get_element(catalog['budget'], pos),
-                'revenue': get_element(catalog['revenue'], pos),
-                'profit': float(get_element(catalog['revenue'], pos)) - float(get_element(catalog['budget'], pos)),
-                'vote_average': get_element(catalog['vote_average'], pos)
-            }
-    
-    return None  # Si no encuentra la película
+    # Buscar la película que coincida con el título y el idioma
+    for movie in movies_list:
+        if movie['title'].lower() == title.lower() and movie['original_language'] == original_language:
 
-def cmp_by_date(movie1, movie2):
-    """ Función de comparación por fecha de publicación para orden descendente """
-    # Convertir las fechas de las películas a objetos datetime para comparar
-    date1 = datetime.strptime(movie1['release_date'], '%Y-%m-%d')
-    date2 = datetime.strptime(movie2['release_date'], '%Y-%m-%d')
-    return date1 > date2  # Orden descendente (más reciente primero)
+                
+
+            return {
+                "duration": movie["runtime"],
+                "release_date": movie["release_date"],
+                "original_title": movie["title"],
+                "budget": movie["budget"],
+                "revenue": movie["revenue"],
+                "profit": movie["earnings"],
+                "rating": movie["vote_average"],
+                "original_language": movie["original_language"]
+            }
+
+    return None
+
+
 
 
 def req_2(catalog, n, original_language):
